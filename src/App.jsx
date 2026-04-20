@@ -207,7 +207,7 @@ const WorkCard = ({ project, onClick }) => {
         pointerEvents: 'none'
       }} />
       <div style={{ color: project.color, fontSize: '0.8rem', letterSpacing: '2px' }}>[ PROJECT_0{project.id} ]</div>
-      <h3 style={{ fontSize: '2rem', margin: '1rem 0', fontFamily: THEME.fontTitle }}>{project.title}</h3>
+      <h3 style={{ fontSize: '2rem', margin: '1rem 0', fontFamily: THEME.fontTitle, wordWrap: 'break-word' }}>{project.title}</h3>
       <p style={{ opacity: 0.6, fontSize: '0.9rem' }}>{project.desc}</p>
       <div style={{ position: 'absolute', bottom: '2rem', left: '2rem', display: 'flex', gap: '10px' }}>
         {project.tags.map(tag => (
