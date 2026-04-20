@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import avatarFile from './1.jpg';
+import musicFile from './music.mp3';
 
 const THEME = {
   bg: '#050505',
@@ -318,7 +320,7 @@ const ProjectModal = ({ project, onClose }) => {
 const App = () => {
   const canvasRef = useRef(null);
   const [selectedProject, setSelectedProject] = useState(null);
-  const avatar = "/1.jpg";
+  const avatar = avatarFile;
   const mouse = useRef({ x: -1000, y: -1000 });
   const audioRef = useRef(null);
 
@@ -505,7 +507,7 @@ const App = () => {
       {/* 背景音乐 - 单曲循环 */}
       <audio 
         ref={audioRef}
-        src="/music.mp3" 
+        src={musicFile} 
         autoPlay 
         loop 
         muted={false}
@@ -517,7 +519,7 @@ const App = () => {
         }}
       >
         您的浏览器不支持音频元素。
-     </audio>
+      </audio>
 
       {/* 点击触发播放 */}
       <div onClick={playMusic} style={{ position: 'fixed', inset: 0, zIndex: 1, pointerEvents: 'auto' }} />
