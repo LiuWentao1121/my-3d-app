@@ -195,7 +195,7 @@ const WorkCard = ({ project, onClick }) => {
       onClick={() => onClick(project)}
       className="glass-panel"
       style={{
-        padding: '2rem', height: '400px', cursor: 'pointer',
+        padding: '2rem', height: '450px', cursor: 'pointer',
         transform: `perspective(1000px) rotateX(${rotate.x}deg) rotateY(${rotate.y}deg)`,
         position: 'relative', overflow: 'hidden',
         boxShadow: rotate.x !== 0 ? `0 20px 50px -10px ${project.color}66` : 'none'
@@ -207,9 +207,9 @@ const WorkCard = ({ project, onClick }) => {
         pointerEvents: 'none'
       }} />
       <div style={{ color: project.color, fontSize: '0.8rem', letterSpacing: '2px' }}>[ PROJECT_0{project.id} ]</div>
-      <h3 style={{ fontSize: '2rem', margin: '1rem 0', fontFamily: THEME.fontTitle, wordWrap: 'break-word' }}>{project.title}</h3>
-      <p style={{ opacity: 0.6, fontSize: '0.9rem' }}>{project.desc}</p>
-      <div style={{ position: 'absolute', bottom: '2rem', left: '2rem', display: 'flex', gap: '10px' }}>
+      <h3 style={{ fontSize: '1.5rem', margin: '1rem 0', fontFamily: THEME.fontTitle, wordWrap: 'break-word' }}>{project.title}</h3>
+      <p style={{ opacity: 0.6, fontSize: '0.9rem', marginBottom: '2rem' }}>{project.desc}</p>
+      <div style={{ position: 'absolute', bottom: '2rem', left: '2rem', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
         {project.tags.map(tag => (
           <span key={tag} style={{ fontSize: '0.7rem', padding: '4px 8px', border: `1px solid ${THEME.border}` }}>{tag}</span>
         ))}
