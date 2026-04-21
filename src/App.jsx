@@ -41,6 +41,11 @@ const GLOBAL_CSS = `
     from { transform: translateY(0); opacity: 1; }
     to { transform: translateY(100%); opacity: 0; }
   }
+  @keyframes pulse {
+    0% { transform: scale(1); opacity: 0.3; }
+    50% { transform: scale(1.2); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 0.3; }
+  }
 `;
 
 /**
@@ -195,7 +200,7 @@ const WorkCard = ({ project, onClick }) => {
       onClick={() => onClick(project)}
       className="glass-panel"
       style={{
-        padding: '2rem', height: '450px', cursor: 'pointer',
+        padding: '2rem', height: '400px', cursor: 'pointer',
         transform: `perspective(1000px) rotateX(${rotate.x}deg) rotateY(${rotate.y}deg)`,
         position: 'relative', overflow: 'hidden',
         boxShadow: rotate.x !== 0 ? `0 20px 50px -10px ${project.color}66` : 'none'
@@ -207,9 +212,9 @@ const WorkCard = ({ project, onClick }) => {
         pointerEvents: 'none'
       }} />
       <div style={{ color: project.color, fontSize: '0.8rem', letterSpacing: '2px' }}>[ PROJECT_0{project.id} ]</div>
-      <h3 style={{ fontSize: '1.5rem', margin: '1rem 0', fontFamily: THEME.fontTitle, wordWrap: 'break-word' }}>{project.title}</h3>
-      <p style={{ opacity: 0.6, fontSize: '0.9rem', marginBottom: '2rem' }}>{project.desc}</p>
-      <div style={{ position: 'absolute', bottom: '2rem', left: '2rem', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+      <h3 style={{ fontSize: '2rem', margin: '1rem 0', fontFamily: THEME.fontTitle }}>{project.title}</h3>
+      <p style={{ opacity: 0.6, fontSize: '0.9rem' }}>{project.desc}</p>
+      <div style={{ position: 'absolute', bottom: '2rem', left: '2rem', display: 'flex', gap: '10px' }}>
         {project.tags.map(tag => (
           <span key={tag} style={{ fontSize: '0.7rem', padding: '4px 8px', border: `1px solid ${THEME.border}` }}>{tag}</span>
         ))}
@@ -417,20 +422,26 @@ const App = () => {
     const ctx = canvas.getContext('2d');
     let donuts = [];
     let globalAngle = { x: 0, y: 0 };
+    let floatingParticles = [];
 
     const DONUT_CONFIGS = [
       { offsetX: 0, offsetY: 0, R: 180, r: 70, color: '#ffffff', speedX: 0.004, speedY: 0.002 },
       { offsetX: 250, offsetY: 180, R: 140, r: 55, color: '#00F0FF', speedX: 0.003, speedY: 0.003 },
-      { offsetX: -220, offsetY: -150, R: 130, r: 50, color: '#A020F0', speedX: 0.003, speedY: 0.002 }
+      { offsetX: -220, offsetY: -150, R: 130, r: 50, color: '#A020F0', speedX: 0.003, speedY: 0.002 },
+      { offsetX: 150, offsetY: -100, R: 100, r: 40, color: '#FF6B6B', speedX: 0.002, speedY: 0.004 },
+      { offsetX: -180, offsetY: 120, R: 110, r: 45, color: '#4ECDC4', speedX: 0.004, speedY: 0.001 }
     ];
 
     const init = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
       donuts = [];
+      floatingParticles = [];
+      
+      // 初始化粒子环
       DONUT_CONFIGS.forEach(config => {
         const particles = [];
-        const count = window.innerWidth < 768 ? 600 : 1200;
+        const count = window.innerWidth < 768 ? 1500 : 3000;
         for (let i = 0; i < count; i++) {
           const u = Math.random() * Math.PI * 2;
           const v = Math.random() * Math.PI * 2;
@@ -447,14 +458,56 @@ const App = () => {
         }
         donuts.push({ config, particles });
       });
+      
+      // 初始化漂浮粒子
+      const floatCount = window.innerWidth < 768 ? 100 : 200;
+      for (let i = 0; i < floatCount; i++) {
+        floatingParticles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          size: Math.random() * 3 + 1,
+          speedX: (Math.random() - 0.5) * 0.5,
+          speedY: (Math.random() - 0.5) * 0.5,
+          opacity: Math.random() * 0.5 + 0.1,
+          color: ['#ffffff', '#00F0FF', '#A020F0', '#FF6B6B', '#4ECDC4'][Math.floor(Math.random() * 5)]
+        });
+      }
     };
 
     const render = () => {
       ctx.fillStyle = THEME.bg;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      globalAngle.x += 0.002; globalAngle.y += 0.001;
+      globalAngle.x += 0.003; globalAngle.y += 0.002;
 
       const focalLength = 500;
+      
+      // 渲染漂浮粒子
+      floatingParticles.forEach(particle => {
+        ctx.save();
+        ctx.globalAlpha = particle.opacity;
+        ctx.fillStyle = particle.color;
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // 添加粒子发光效果
+        ctx.shadowColor = particle.color;
+        ctx.shadowBlur = 15;
+        ctx.fill();
+        ctx.restore();
+        
+        // 更新位置
+        particle.x += particle.speedX;
+        particle.y += particle.speedY;
+        
+        // 边界检测
+        if (particle.x < -50) particle.x = canvas.width + 50;
+        if (particle.x > canvas.width + 50) particle.x = -50;
+        if (particle.y < -50) particle.y = canvas.height + 50;
+        if (particle.y > canvas.height + 50) particle.y = -50;
+      });
+
+      // 渲染粒子环
       donuts.forEach(({ config, particles }) => {
         const angleX = globalAngle.x * (config.speedX / 0.004);
         const angleY = globalAngle.y * (config.speedY / 0.002);
@@ -474,21 +527,73 @@ const App = () => {
           const dy = mouse.current.y - sy;
           const dist = Math.sqrt(dx * dx + dy * dy);
 
-          if (dist < 100) {
-            p.vx -= dx * 0.08; p.vy -= dy * 0.08;
+          if (dist < 150) {
+            p.vx -= dx * 0.1; p.vy -= dy * 0.1;
           }
-          p.vx += (x2 - p.x) * 0.04; p.vy += (y1 - p.y) * 0.04; p.vz += (z2 - p.z) * 0.04;
-          p.vx *= 0.85; p.vy *= 0.85; p.vz *= 0.85;
+          p.vx += (x2 - p.x) * 0.05; p.vy += (y1 - p.y) * 0.05; p.vz += (z2 - p.z) * 0.05;
+          p.vx *= 0.8; p.vy *= 0.8; p.vz *= 0.8;
           p.x += p.vx; p.y += p.vy; p.z += p.vz;
 
           const drawScale = focalLength / (focalLength + p.z);
           if (drawScale > 0) {
+            ctx.save();
             ctx.fillStyle = config.color;
-            ctx.globalAlpha = Math.max(0.25, (p.z + config.r) / (config.r * 2)) * (1 - window.scrollY / 800);
-            ctx.fillRect(p.x * drawScale + canvas.width / 2 + config.offsetX, p.y * drawScale + canvas.height / 2 + config.offsetY, drawScale * 2, drawScale * 2);
+            ctx.globalAlpha = Math.max(0.4, (p.z + config.r) / (config.r * 2)) * (1 - window.scrollY / 1000);
+            
+            // 添加粒子发光效果
+            ctx.shadowColor = config.color;
+            ctx.shadowBlur = 20;
+            
+            ctx.fillRect(p.x * drawScale + canvas.width / 2 + config.offsetX, p.y * drawScale + canvas.height / 2 + config.offsetY, drawScale * 3, drawScale * 3);
+            ctx.restore();
           }
         });
       });
+      
+      // 绘制粒子之间的连线
+      donuts.forEach(({ config, particles }) => {
+        const angleX = globalAngle.x * (config.speedX / 0.004);
+        const angleY = globalAngle.y * (config.speedY / 0.002);
+        
+        // 计算粒子位置
+        const particlePositions = particles.map(p => {
+          let x = p.originalPos.x, y = p.originalPos.y, z = p.originalPos.z;
+          let y1 = y * Math.cos(angleX) - z * Math.sin(angleX);
+          let z1 = y * Math.sin(angleX) + z * Math.cos(angleX);
+          let x2 = x * Math.cos(angleY) + z1 * Math.sin(angleY);
+          let z2 = -x * Math.sin(angleY) + z1 * Math.cos(angleY);
+          
+          const drawScale = focalLength / (focalLength + z2);
+          return {
+            x: p.x * drawScale + canvas.width / 2 + config.offsetX,
+            y: p.y * drawScale + canvas.height / 2 + config.offsetY,
+            z: z2
+          };
+        });
+        
+        // 绘制连线
+        ctx.save();
+        ctx.strokeStyle = config.color;
+        ctx.globalAlpha = 0.1;
+        ctx.lineWidth = 0.5;
+        
+        for (let i = 0; i < particlePositions.length; i++) {
+          for (let j = i + 1; j < particlePositions.length; j++) {
+            const dx = particlePositions[i].x - particlePositions[j].x;
+            const dy = particlePositions[i].y - particlePositions[j].y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            
+            if (dist < 50) {
+              ctx.beginPath();
+              ctx.moveTo(particlePositions[i].x, particlePositions[i].y);
+              ctx.lineTo(particlePositions[j].x, particlePositions[j].y);
+              ctx.stroke();
+            }
+          }
+        }
+        ctx.restore();
+      });
+      
       requestAnimationFrame(render);
     };
 
@@ -524,10 +629,72 @@ const App = () => {
       {/* 点击触发播放 */}
       <div onClick={playMusic} style={{ position: 'fixed', inset: 0, zIndex: 1, pointerEvents: 'auto' }} />
       
-      {/* 三个呼吸感背景光晕 */}
-      <div style={{ position: 'fixed', top: '-10%', left: '20%', width: '60vw', height: '40vh', background: `conic-gradient(${THEME.primary}22, transparent)`, filter: 'blur(100px)', zIndex: 0 }} />
-      <div style={{ position: 'fixed', bottom: '-10%', right: '20%', width: '60vw', height: '40vh', background: `conic-gradient(${THEME.secondary}11, transparent)`, filter: 'blur(100px)', zIndex: 0 }} />
-      <div style={{ position: 'fixed', top: '40%', left: '-10%', width: '50vw', height: '50vh', background: `conic-gradient(${THEME.primary}15, transparent)`, filter: 'blur(120px)', zIndex: 0 }} />
+      {/* 动态呼吸感背景光晕 */}
+      <div style={{ 
+        position: 'fixed', 
+        top: '-10%', 
+        left: '20%', 
+        width: '60vw', 
+        height: '40vh', 
+        background: `conic-gradient(${THEME.primary}22, transparent)`, 
+        filter: 'blur(100px)', 
+        zIndex: 0,
+        animation: 'pulse 8s ease-in-out infinite',
+        transformOrigin: 'center',
+        opacity: 0.7
+      }} />
+      <div style={{ 
+        position: 'fixed', 
+        bottom: '-10%', 
+        right: '20%', 
+        width: '60vw', 
+        height: '40vh', 
+        background: `conic-gradient(${THEME.secondary}11, transparent)`, 
+        filter: 'blur(100px)', 
+        zIndex: 0,
+        animation: 'pulse 10s ease-in-out infinite reverse',
+        transformOrigin: 'center',
+        opacity: 0.6
+      }} />
+      <div style={{ 
+        position: 'fixed', 
+        top: '40%', 
+        left: '-10%', 
+        width: '50vw', 
+        height: '50vh', 
+        background: `conic-gradient(${THEME.primary}15, transparent)`, 
+        filter: 'blur(120px)', 
+        zIndex: 0,
+        animation: 'pulse 12s ease-in-out infinite',
+        transformOrigin: 'center',
+        opacity: 0.5
+      }} />
+      <div style={{ 
+        position: 'fixed', 
+        bottom: '30%', 
+        right: '-10%', 
+        width: '40vw', 
+        height: '40vh', 
+        background: `conic-gradient(#FF6B6B22, transparent)`, 
+        filter: 'blur(80px)', 
+        zIndex: 0,
+        animation: 'pulse 9s ease-in-out infinite reverse',
+        transformOrigin: 'center',
+        opacity: 0.4
+      }} />
+      <div style={{ 
+        position: 'fixed', 
+        top: '10%', 
+        right: '30%', 
+        width: '45vw', 
+        height: '35vh', 
+        background: `conic-gradient(#4ECDC422, transparent)`, 
+        filter: 'blur(90px)', 
+        zIndex: 0,
+        animation: 'pulse 11s ease-in-out infinite',
+        transformOrigin: 'center',
+        opacity: 0.3
+      }} />
 
       <canvas ref={canvasRef} onMouseMove={(e) => mouse.current = { x: e.clientX, y: e.clientY }} style={{ position: 'fixed', inset: 0, zIndex: 1 }} />
 
